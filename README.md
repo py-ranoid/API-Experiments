@@ -1,2 +1,8 @@
-# API_Experiments
-Popular Public APIs and how to use them
+# API - Experiments
+
+## Communication
+- Email : Sendgrid 
+- Cross-device : Pushbullet
+
+## App-Specific
+- Todoist
