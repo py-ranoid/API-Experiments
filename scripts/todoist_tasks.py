@@ -13,9 +13,16 @@ API Requirements :
 - API Key. Obtain here : https://todoist.com/prefs/integrations#
 (stored as your_token below)
 """
-import requests,uuid,json,datetime
+import requests, uuid, json, datetime
+import fire
+import yaml
+from pathlib import Path
+import os
 
-your_token = "API_KEY" #https://todoist.com/prefs/integrations#
+with open(os.path.join(Path(__file__).resolve().parents[1],'creds.yml')) as creds_file:
+    creds = yaml.load(creds_file.read(),Loader=yaml.FullLoader)
+
+your_token = creds['todoist']['token'] #https://todoist.com/prefs/integrations#
 headers={"Authorization": "Bearer %s" % your_token}
 URL = "https://beta.todoist.com/API/v8"
 
@@ -45,11 +52,16 @@ def addTask(title="Appointment with Maria",when="tomorrow at 12:00",priority=3):
         "X-Request-Id": str(uuid.uuid4()),
         "Authorization": "Bearer %s" % your_token
     })
-    return resp.json()
+    print (resp)
 
 def getBatchTitle(i):
     interval = 6
     return "Read pages %d to %d" % (104+i*interval,104+(i+1)*interval)
+
+def deleteTasks(taskIDs):
+    for tid in taskIDs:
+        print ("Deleted : ")
+        requests.delete(URL+"/tasks/"+str(tid), headers=headers)
 
 def addBatchTasks(n=30,hour=12,minute=00):
     """Use this to add a batch of tasks.
@@ -63,3 +75,10 @@ def addBatchTasks(n=30,hour=12,minute=00):
     for i in range(n):
         task_time = init+datetime.timedelta(days=i)
         addTask(title=getBatchTitle(i),when=str(task_time))
+
+def getFilteredTaskIDs(sub_string,proj_id):
+    t = getProjectTasks(proj_id)
+    return dict([(i['id'],i) for i in t if sub_string in i['content']])
+
+if __name__ == "__main__":
+    fire.Fire({"addTask":addTask})
